@@ -1,0 +1,50 @@
+#include <Servo.h>
+Servo depthServo; // Create a servo object for depth control
+char command; // Variable to store the received command
+int depthPin = 9; // Define the pin for the depth servo
+2
+
+int depthAngle = 0; // Initial depth angle
+int depthLimit = 30; // Depth limit in centimeters
+const int trigPin = 2; // Define the trigger pin of the ultrasonic sensor
+const int echoPin = 3; // Define the echo pin of the ultrasonic sensor
+
+void setup() {
+Serial.begin(9600);
+depthServo.attach(depthPin);
+depthServo.write(depthAngle);
+pinMode(trigPin, OUTPUT);
+pinMode(echoPin, INPUT);
+}
+void loop() {
+if (Serial.available() > 0) {
+command = Serial.read(); // Read the command from the Serial Monitor
+long duration, depth;
+digitalWrite(trigPin, LOW);
+delayMicroseconds(2);
+digitalWrite(trigPin, HIGH);
+delayMicroseconds(10);
+digitalWrite(trigPin, LOW);
+duration = pulseIn(echoPin, HIGH);
+depth = (duration / 2) / 29.1; // Convert the duration to depth in
+centimeters
+// Check if the depth is less than the depth limit
+if (depth < depthLimit) {
+if (command == 'U') {// Depth is too shallow, prevent 'D' command from working
+depthAngle -= 30; // Decrease the depth angle by 30 degrees
+depthAngle = constrain(depthAngle, 0, 180);
+depthServo.write(depthAngle);
+3
+
+}
+} else {
+// Depth is within the limit, allow both 'U' and 'D' commands
+if (command == 'U') {
+depthAngle -= 30;
+depthAngle = constrain(depthAngle, 0, 180);
+depthServo.write(depthAngle);
+} else if (command == 'D') {
+depthAngle += 30;
+depthAngle = constrain(depthAngle, 0, 180);
+depthServo.write(depthAngle);
+}}}}
